@@ -9,8 +9,10 @@ services:
       - webserver:/var/www/html/
     networks:
       - frontend
+      - backend
     depends_on:
-      - "wordpress"
+      - wordpress
+
   wordpress:
     tty: true
     build: requirements/wordpress/
@@ -26,7 +28,13 @@ services:
       - frontend
       - backend
     depends_on:
-      - "mariadb"
+      - mariadb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   mariadb:
     build:
       context: requirements/mariadb/
@@ -43,19 +51,23 @@ services:
       - mysql:/var/lib/mysql/
     networks:
       - backend
+
 volumes:
   webserver:
     driver: local
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: '/home/saazcon/data/webserver'
+      device: '/home/jolivare/data/webserver'
   mysql:
     driver: local
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: '/home/saazcon/data/mysql'
+      device: '/home/jolivare/data/mysql'
+
 networks:
   frontend:
+    driver: bridge
   backend:
+    driver: bridge

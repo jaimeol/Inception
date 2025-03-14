@@ -42,7 +42,7 @@ myisam-recover         = BACKUP
 #max_connections        = 100
 #table_cache            = 64
 #thread_concurrency     = 10
-
+	
 #
 # * Query Cache Configuration
 #
