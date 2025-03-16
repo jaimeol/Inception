@@ -1,73 +1,52 @@
 services:
   nginx:
-    build: requirements/nginx/
+    build: requirements/nginx/.
     container_name: nginx
-    ports:
-      - "443:443"
-    restart: always
-    volumes:
-      - webserver:/var/www/html/
-    networks:
-      - frontend
-      - backend
+    image: nginx
     depends_on:
       - wordpress
-
-  wordpress:
-    tty: true
-    build: requirements/wordpress/
-    container_name: wordpress
-    env_file:
-      - .env
+      - mariadb
     ports:
-      - "9000:9000"
-    restart: always
+      - "443:443"
     volumes:
-      - webserver:/var/www/html
+      - wordpress_data:/var/www/html
     networks:
-      - frontend
-      - backend
+      inception:
+    restart: always
+  wordpress:
+    build: requirements/wordpress/.
+    container_name: wp-php
+    image: wordpress
     depends_on:
       - mariadb
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  mariadb:
-    build:
-      context: requirements/mariadb/
-      args:
-        DB_NAME: ${DB_NAME}
-        MYSQL_ADMIN_USER: ${MYSQL_ADMIN_USER}
-        MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    container_name: mariadb
-    ports:
-      - "3306:3306"
-    restart: always
     volumes:
-      - mysql:/var/lib/mysql/
+      - wordpress_data:/var/www/html
     networks:
-      - backend
-
-volumes:
-  webserver:
-    driver: local
-    driver_opts:
-      type: 'none'
-      o: 'bind'
-      device: '/home/jolivare/data/webserver'
-  mysql:
-    driver: local
-    driver_opts:
-      type: 'none'
-      o: 'bind'
-      device: '/home/jolivare/data/mysql'
+      inception:
+    restart: always
+  mariadb:
+    build: requirements/mariadb/.
+    container_name: mariadb
+    image: mariadb
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      inception:
+    restart: always
 
 networks:
-  frontend:
-    driver: bridge
-  backend:
-    driver: bridge
+   inception:
+
+volumes:
+  mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/jolivare/data/mariadb_data
+      o: bind
+  wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/jolivare/data/wordpress_data
+      o: bind

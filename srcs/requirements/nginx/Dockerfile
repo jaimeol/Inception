@@ -1,18 +1,17 @@
-FROM debian:buster
+FROM debian:latest
 
-RUN apt-get update \
-		&& apt-get install -y openssl \
-		&& apt-get install -y nginx
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y nginx openssl apt-utils \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN openssl req -x509 -nodes -days 365 \
-	-subj "/C=ES/ST=Madrid/O=42Madrid, Inc./CN=jolivare.42.fr" \
-	-addext "subjectAltName=DNS:jolivare.42.fr" \
-	-newkey rsa:2048 \
-	-keyout /etc/ssl/private/jolivare.key \
-	-out /etc/ssl/certs/jolivare.crt  # Ruta corregida
+RUN mkdir /etc/nginx/ssl
+RUN openssl req -newkey rsa:4096 -x509 -sha256 -days 365 -nodes \
+    -out /etc/nginx/ssl/jolivare.crt \
+    -keyout /etc/nginx/ssl/jolivare.key \
+    -subj "/C=ES/ST=Madrid/L=Madrid/O=42 School/OU=jolivare42/CN=jolivare/"
 
-RUN rm -rf /etc/nginx/sites-enabled/*
+COPY default /etc/nginx/conf.d/default.conf
 
-COPY tools/default.conf /etc/nginx/conf.d/
+EXPOSE 443
 
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+CMD ["nginx", "-g", "daemon off;"]

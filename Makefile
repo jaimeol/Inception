@@ -1,38 +1,22 @@
-COMPOSEPATH     = ./srcs/docker-compose.yaml
-MYSQL_NAME      = mysql
-WEBSERVER_NAME  = webserver
-DATA_PATH       = /home/jolivare
-DATA_DIR        = ${DATA_PATH}/data/
-MYSQL_DIR       = ${DATA_DIR}${MYSQL_NAME}
-WEBSERVER_DIR   = ${DATA_DIR}${WEBSERVER_NAME}
-
-all: ${DATA_DIR} ${MYSQL_DIR} ${WEBSERVER_DIR}
-	docker compose -f ${COMPOSEPATH} up -d --build
-
-${MYSQL_DIR} ${WEBSERVER_DIR}: ${DATA_DIR}
-	mkdir -p $@
-
-${DATA_DIR}:
-	mkdir -p ${DATA_DIR}
+all:
+	@docker compose -f ./srcs/docker-compose.yaml up -d --build
 
 down:
-	docker compose -f ${COMPOSEPATH} down
+	@docker compose -f ./srcs/docker-compose.yaml down
 
-fclean: down
-	docker volume rm -f ${MYSQL_NAME} ${WEBSERVER_NAME} 2>/dev/null || true
-	sudo rm -rf ${DATA_DIR}
+rmdata:
+	@docker volume rm srcs_mariadb_data srcs_wordpress_data
+	@docker system prune -a
 
-clean:
-	docker rmi -f $$(docker images -q -f "reference=*wordpress*") 2>/dev/null || true
-	docker rmi -f $$(docker images -q -f "reference=*nginx*") 2>/dev/null || true
-	docker rmi -f $$(docker images -q -f "reference=*mariadb*") 2>/dev/null || true
+re:
+	@docker compose -f srcs/docker-compose.yaml up -d --build
 
 ps:
-	docker compose -f ${COMPOSEPATH} ps
+	@docker ps;
 
-logs:
-	docker compose -f ${COMPOSEPATH} logs -f
+clean:
+	@docker stop $$(docker ps -qa);\
+	docker rm $$(docker ps -qa);\
+	docker rmi -f $$(docker images -qa);\
 
-re: fclean all
-
-.PHONY: all clean fclean re ps logs down
+.PHONY: all re down rmdata clean

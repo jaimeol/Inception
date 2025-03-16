@@ -1,19 +1,12 @@
-FROM debian:buster
+FROM debian:latest
 
-ARG DB_NAME MYSQL_ADMIN_USER MYSQL_PASSWORD MYSQL_ROOT_PASSWORD
+RUN apt update -y && apt upgrade -y && apt install -y \
+    mariadb-server
 
-RUN apt-get update && apt-get install -y mariadb-server
+COPY 50-server.cnf /etc/mysql/mariadb.conf.d/.
+COPY init.sql /etc/mysql/init.sql
+COPY script.sh .
 
-COPY /tools/50-server.cnf etc/mysql/mariadb.conf.d/
+RUN mkdir /run/mysqld && chmod +x script.sh
 
-RUN echo "CREATE DATABASE IF NOT EXISTS ${DB_NAME};" >> configure.sql
-
-RUN echo "CREATE USER IF NOT EXISTS '${MYSQL_ADMIN_USER}' IDENTIFIED BY '${MYSQL_PASSWORD}';" >> configure.sql
-
-RUN echo "GRANT ALL PRIVILEGES ON *.* TO '${MYSQL_ADMIN_USER}' IDENTIFIED BY '${MYSQL_PASSWORD}';" >> configure.sql
-
-RUN echo "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';" >> configure.sql
-
-RUN service mysql start && mysql < configure.sql
-
-CMD ["mysqld"]
+CMD ["./script.sh"]
