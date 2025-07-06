@@ -1,4 +1,4 @@
-FROM debian:latest
+FROM debian:bookworm
 
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y nginx openssl apt-utils \
@@ -10,7 +10,7 @@ RUN openssl req -newkey rsa:4096 -x509 -sha256 -days 365 -nodes \
     -keyout /etc/nginx/ssl/jolivare.key \
     -subj "/C=ES/ST=Madrid/L=Madrid/O=42 School/OU=jolivare42/CN=jolivare/"
 
-COPY default /etc/nginx/conf.d/default.conf
+COPY tools/default /etc/nginx/conf.d/default.conf
 
 EXPOSE 443
 

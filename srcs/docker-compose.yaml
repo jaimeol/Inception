@@ -11,27 +11,39 @@ services:
     volumes:
       - wordpress_data:/var/www/html
     networks:
-      inception:
+      - inception
     restart: always
   wordpress:
     build: requirements/wordpress/.
     container_name: wp-php
     image: wordpress
+    env_file:
+      - .env
+    secrets:
+      - wp_admin_user
+      - wp_admin_password
+      - wp_admin_email
+      - db_password
     depends_on:
       - mariadb
     volumes:
       - wordpress_data:/var/www/html
     networks:
-      inception:
+      - inception
     restart: always
   mariadb:
     build: requirements/mariadb/.
     container_name: mariadb
     image: mariadb
+    env_file:
+      - .env
+    secrets:
+      - db_password
+      - db_root_password
     volumes:
       - mariadb_data:/var/lib/mysql
     networks:
-      inception:
+      - inception
     restart: always
 
 networks:
@@ -50,3 +62,15 @@ volumes:
       type: none
       device: /home/jolivare/data/wordpress_data
       o: bind
+
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  wp_admin_user:
+    file: ../secrets/wp_admin_user.txt
+  wp_admin_email:
+    file: ../secrets/wp_admin_email.txt
+  wp_admin_password:
+    file: ../secrets/wp_admin_password.txt
