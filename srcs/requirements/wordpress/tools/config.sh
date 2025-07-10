@@ -8,6 +8,9 @@ DB_PASS=$(cat /run/secrets/db_password)
 WP_ADMIN_USER=$(cat /run/secrets/wp_admin_user)
 WP_ADMIN_PASS=$(cat /run/secrets/wp_admin_password)
 WP_ADMIN_EMAIL=$(cat /run/secrets/wp_admin_email)
+WP_USER=$(cat /run/secrets/wp_user)
+WP_USER_PASS=$(cat /run/secrets/wp_user_password)
+WP_USER_EMAIL=$(cat /run/secrets/wp_user_email)
 
 # Directorio temporal de instalación
 TMP_DIR="/tmp/wordpress"
@@ -39,9 +42,25 @@ chmod +x wp-cli.phar
   --admin_email=$WP_ADMIN_EMAIL \
   --allow-root
 
+# Crear o actualizar usuario adicional
+if ./wp-cli.phar user get "$WP_USER" --allow-root > /dev/null 2>&1; then
+  echo "Usuario $WP_USER ya existe, actualizando contraseña..."
+  ./wp-cli.phar user update "$WP_USER" --user_pass="$WP_USER_PASS" --allow-root
+else
+  echo "Creando usuario $WP_USER..."
+  ./wp-cli.phar user create "$WP_USER" "$WP_USER_EMAIL" \
+    --user_pass="$WP_USER_PASS" \
+    --role=author \
+    --allow-root
+fi
+
 # Mover todo a /var/www/html
 rm -rf /var/www/html/*
 cp -r $TMP_DIR/* /var/www/html/
 
-# Iniciar PHP
-php-fpm8.2 -F
+if [ ! -d /run/php ]; then
+  mkdir -p /run/php
+fi
+
+php-fpm7.4 -F
+

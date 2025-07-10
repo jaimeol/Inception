@@ -1,15 +1,21 @@
+FROM debian:bullseye
 
-FROM debian:bookworm
+RUN apt-get update && apt-get install -y \
+    php7.4-fpm \
+    php7.4-mysqli \
+    php7.4-curl \
+    php7.4-xml \
+    php7.4-mbstring \
+    php7.4-zip \
+    php7.4-gd \
+    php7.4-cli \
+    curl unzip
 
-RUN apt-get update -y && apt-get upgrade -y && apt-get install -y \
-	php-fpm \
-	php-mysqli \
-	curl
+COPY conf/www.conf /etc/php/7.4/fpm/pool.d/www.conf
 
-COPY conf/www.conf /etc/php/8.2/fpm/pool.d/.
-COPY tools/config.sh .
-RUN chmod +x config.sh
+COPY tools/config.sh /config.sh
+RUN chmod +x /config.sh
 
 VOLUME /var/www/html
 
-CMD ["./config.sh"]
+CMD ["bash", "/config.sh"]
