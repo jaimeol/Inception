@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM debian:bullseye
 
 RUN apt update -y && apt upgrade -y && apt install -y mariadb-server
 
@@ -18,4 +18,4 @@ RUN mkdir /run/mysqld
 EXPOSE 3306
 
 # Ejecutar script.sh que genera init.sql con contraseña de secreto y arranca mysqld
-CMD ["/usr/local/bin/script.sh"]
+CMD ["bash", "/usr/local/bin/script.sh"]
